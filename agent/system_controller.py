@@ -123,6 +123,39 @@ class SystemController:
         except Exception:
             return "Windows Desktop Workspace"
 
+    def capture_screen_frame_jpeg(self, quality: int = 70) -> bytes:
+        """Captures primary display frame, compresses to 720p JPEG in memory, and returns raw bytes."""
+        try:
+            try:
+                import mss
+                with mss.mss() as sct:
+                    monitor = sct.monitors[1]
+                    sct_img = sct.grab(monitor)
+                    from PIL import Image
+                    img = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
+            except ImportError:
+                from PIL import ImageGrab
+                img = ImageGrab.grab().convert("RGB")
+
+            # Resize to 720p height maintaining aspect ratio
+            w, h = img.size
+            target_h = 720
+            target_w = int(w * (target_h / float(h)))
+            img_resized = img.resize((target_w, target_h))
+
+            buffer = io.BytesIO()
+            img_resized.save(buffer, format="JPEG", quality=quality)
+            return buffer.getvalue()
+        except Exception as e:
+            logger.error(f"Desktop frame capture error: {e}")
+            from PIL import Image, ImageDraw
+            fallback = Image.new("RGB", (1280, 720), color=(7, 9, 14))
+            draw = ImageDraw.Draw(fallback)
+            draw.text((400, 350), "ASTRA DESKTOP STREAM — ACTIVE", fill=(0, 240, 255))
+            buf = io.BytesIO()
+            fallback.save(buf, format="JPEG")
+            return buf.getvalue()
+
     def capture_desktop_base64(self) -> Dict[str, Any]:
         """Captures full-screen desktop snapshot and returns base64 string."""
         try:

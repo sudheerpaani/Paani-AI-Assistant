@@ -168,6 +168,17 @@ class PaaniRequestHandler(SimpleHTTPRequestHandler):
             except Exception as e:
                 self._send_json(500, {"success": False, "error": str(e)})
 
+        elif path == "/api/system/screen-frame":
+            try:
+                img_bytes = system_controller.capture_screen_frame_jpeg(quality=70)
+                self.send_response(200)
+                self.send_header("Content-Type", "image/jpeg")
+                self.send_header("Content-Length", str(len(img_bytes)))
+                self.end_headers()
+                self.wfile.write(img_bytes)
+            except Exception as e:
+                self._send_json(500, {"error": str(e)})
+
         elif path == "/api/browser/viewport":
             try:
                 res = run_async(browser_controller.get_viewport_data())
@@ -190,7 +201,30 @@ class PaaniRequestHandler(SimpleHTTPRequestHandler):
         except Exception:
             body = {}
 
-        if path == "/api/agent/prompt":
+        if path == "/api/chat/stream" or path == "/api/chat":
+            prompt = body.get("prompt", body.get("directive", "Scan logistics and autonomous elements"))
+            sys_prompt = body.get("systemPrompt", "You are Paani 3.0 Astra Multimodal Spatial Companion.")
+            
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Connection", "keep-alive")
+            self.end_headers()
+
+            async def _stream_helper():
+                async for token in model_router.stream_completion(prompt, sys_prompt):
+                    msg = f"data: {json.dumps({'token': token})}\n\n"
+                    self.wfile.write(msg.encode("utf-8"))
+                    self.wfile.flush()
+                self.wfile.write(b"data: [DONE]\n\n")
+                self.wfile.flush()
+
+            try:
+                run_async(_stream_helper(), timeout=60)
+            except Exception as e:
+                logger.error(f"SSE Chat streaming error: {e}")
+
+        elif path == "/api/agent/prompt":
             directive = body.get("directive", "Scan global logistics and vendors")
             logger.info(f"[BRAIN] Received directive: '{directive}'")
 
@@ -245,6 +279,10 @@ class PaaniRequestHandler(SimpleHTTPRequestHandler):
                 self._send_json(500, {"success": False, "error": str(e)})
 
         elif path == "/api/config/keys":
+            if "groqApiKey" in body:
+                model_router.set_config("groq_api_key", body["groqApiKey"])
+            if "cerebrasApiKey" in body:
+                model_router.set_config("cerebras_api_key", body["cerebrasApiKey"])
             if "geminiApiKey" in body:
                 model_router.set_config("gemini_api_key", body["geminiApiKey"])
             if "openaiApiKey" in body:
