@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#04060a] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAANI 2.0 — Holographic JARVIS Command Deck</title>
+  
+  <!-- Fonts: JetBrains Mono & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'Consolas', 'monospace'],
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            obsidian: '#04060a',
+            hudbg: '#080c14',
+            neonCyan: '#00e5ff',
+            emeraldGreen: '#00e676',
+            amberAlert: '#ffb300',
+            neonCoral: '#ff1744'
+          },
+          boxShadow: {
+            hudGlow: '0 0 15px rgba(0, 229, 255, 0.15)',
+            amberGlow: '0 0 20px rgba(255, 179, 0, 0.3)',
+            greenGlow: '0 0 15px rgba(0, 230, 118, 0.2)',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    body {
+      background-color: #04060a;
+      font-family: 'JetBrains Mono', monospace;
+      overflow-x: hidden;
+    }
+    .hud-card {
+      background: rgba(8, 12, 20, 0.88);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.08);
+      backdrop-filter: blur(12px);
+    }
+    .hud-card-amber {
+      background: rgba(15, 12, 5, 0.95);
+      border: 1px solid rgba(255, 179, 0, 0.5);
+      box-shadow: 0 0 25px rgba(255, 179, 0, 0.25);
+    }
+    /* Holographic scanline animation */
+    .scanline {
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0),
+        rgba(0, 229, 255, 0.15) 50%,
+        rgba(255,255,255,0)
+      );
+      animation: scan 4s linear infinite;
+    }
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(1000%); }
+    }
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #04060a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 229, 255, 0.3);
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col antialiased">
+
+  <!-- TOP HOLOGRAPHIC NAVIGATION BAR -->
+  <header class="h-14 border-b border-cyan-500/30 bg-[#080c14]/90 px-6 flex items-center justify-between flex-shrink-0 z-20 backdrop-blur-md">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded border border-cyan-400/60 bg-cyan-500/10 flex items-center justify-center text-cyan-400 font-bold text-lg shadow-[0_0_12px_rgba(0,229,255,0.4)]">
+        🌊
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="text-base font-bold tracking-widest text-cyan-400">PAANI 2.0</h1>
+          <span class="text-[10px] px-2 py-0.5 rounded border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 font-mono">AUTONOMOUS JARVIS COMMAND DECK</span>
+        </div>
+        <div class="text-[10px] text-slate-400 font-mono">BACKGROUND WATCHER: ACTIVE • LOCAL RAG VECTOR INDEX: READY • TOASTS: ENABLED</div>
+      </div>
+    </div>
+
+    <!-- Top Status & Mode Chips -->
+    <div class="flex items-center space-x-2.5 text-xs font-mono">
+      <!-- Cognitive State Badge -->
+      <div id="cognitive-state-badge" class="flex items-center space-x-2 px-3 py-1 rounded border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 shadow-[0_0_10px_rgba(0,229,255,0.15)]">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+        <span id="cognitive-state-text">STATE: STANDBY</span>
+      </div>
+
+      <!-- VLM Vision Self-Healing Telemetry Badge -->
+      <div id="vlm-healing-badge" class="flex items-center space-x-2 px-3 py-1 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 shadow-[0_0_10px_rgba(0,230,118,0.15)]">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span>HEALING: VLM ACTIVE</span>
+      </div>
+
+      <!-- Router Status Indicator Button -->
+      <button 
+        id="routerToggleBtn"
+        onclick="toggleRouterProvider()"
+        class="px-3 py-1 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-400/60 rounded font-bold transition-all text-xs flex items-center gap-1.5 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+      >
+        <span id="routerIcon">☁️</span>
+        <span id="routerText">ROUTE: HYBRID (AUTO)</span>
+      </button>
+
+      <!-- Settings Gear Modal Button -->
+      <button 
+        onclick="openSettingsModal()" 
+        title="Configure Cloud API Keys"
+        class="px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded font-bold text-xs transition-all"
+      >
+        ⚙️
+      </button>
+
+      <!-- Voice Mute/Active Toggle Button -->
+      <button 
+        id="voiceToggleBtn"
+        onclick="toggleVoiceActive()"
+        class="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/60 rounded font-bold transition-all text-xs flex items-center gap-1.5 shadow-[0_0_10px_rgba(0,229,255,0.15)]"
+      >
+        <span id="voiceToggleIcon">🔊</span>
+        <span id="voiceToggleText">VOICE: ACTIVE</span>
+      </button>
+
+      <!-- Compact Overlay Mode Toggle Button -->
+      <button 
+        id="btn-compact-mode"
+        onclick="toggleCompactOverlayMode()" 
+        class="px-2.5 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/60 rounded font-bold text-xs transition-all"
+        title="Toggle Compact Floating Overlay View"
+      >
+        🔍 COMPACT
+      </button>
+
+      <!-- Headed/Headless Handover Button -->
+      <button 
+        id="btn-toggle-handover"
+        onclick="toggleBrowserHandover()" 
+        class="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/60 rounded font-bold transition-all shadow-[0_0_12px_rgba(255,179,0,0.25)] text-xs flex items-center gap-1.5"
+      >
+        <span>✋ TAKE CONTROL</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN HUD 3-PANEL TACTICAL COMMAND DECK -->
+  <main id="main-command-deck" class="flex-1 grid grid-cols-12 gap-3 p-3 overflow-hidden text-xs font-mono transition-all">
+    
+    <!-- LEFT PANEL: ARC REACTOR & SYSTEM TELEMETRY -->
+    <section id="left-panel" class="col-span-3 flex flex-col space-y-3 overflow-hidden">
+      
+      <!-- Pulsing Arc Reactor Core -->
+      <div class="hud-card rounded-xl p-3.5 flex flex-col items-center justify-center space-y-2 relative overflow-hidden">
+        <div class="text-[10px] font-bold tracking-widest text-cyan-400 border-b border-cyan-500/20 pb-1 w-full text-center">
+          ARC REACTOR AGENT CORE
+        </div>
+        
+        <div class="relative w-full h-36 flex items-center justify-center">
+          <canvas id="arc-reactor-canvas" width="160" height="130" class="z-10"></canvas>
+          <div class="absolute bottom-1 text-[9.5px] font-bold tracking-widest text-cyan-300 z-20 bg-slate-950/90 px-2 py-0.5 rounded border border-cyan-500/40" id="arc-state-text">
+            STANDBY / READY
+          </div>
+        </div>
+      </div>
+
+      <!-- Local Compute Gauges -->
+      <div class="hud-card rounded-xl p-3.5 flex flex-col space-y-2.5">
+        <div class="flex items-center justify-between border-b border-cyan-500/20 pb-1.5">
+          <span class="text-cyan-400 font-bold tracking-wider flex items-center gap-1.5">
+            <span>⚙️</span> COMPUTE GAUGES
+          </span>
+          <span class="text-[10px] text-slate-400">Ollama v0.33.2</span>
+        </div>
+
+        <div class="space-y-2">
+          <div>
+            <div class="flex justify-between text-[10.5px] mb-0.5">
+              <span class="text-slate-300">Active Model</span>
+              <span class="text-cyan-400 font-semibold" id="val-active-model">qwen2.5 / gemini-1.5</span>
+            </div>
+            <div class="w-full bg-slate-900 rounded-full h-1.5 border border-cyan-500/20 overflow-hidden">
+              <div class="bg-cyan-400 h-1.5 rounded-full" style="width: 85%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[10.5px] mb-0.5">
+              <span class="text-slate-300">VRAM Allocation</span>
+              <span class="text-cyan-300" id="val-vram">6.8 GB / 12.0 GB</span>
+            </div>
+            <div class="w-full bg-slate-900 rounded-full h-1.5 border border-cyan-500/20 overflow-hidden">
+              <div class="bg-cyan-400 h-1.5 rounded-full" style="width: 56%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[10.5px] mb-0.5">
+              <span class="text-slate-300">System RAM Allocation</span>
+              <span class="text-cyan-300" id="val-ram">14.2 GB / 32.0 GB</span>
+            </div>
+            <div class="w-full bg-slate-900 rounded-full h-1.5 border border-cyan-500/20 overflow-hidden">
+              <div class="bg-cyan-400 h-1.5 rounded-full" style="width: 44%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SQLite Memory & History Module -->
+      <div class="hud-card rounded-xl p-3.5 flex-1 flex flex-col space-y-2.5 overflow-hidden">
+        <div class="flex items-center justify-between border-b border-cyan-500/20 pb-1.5">
+          <span class="text-cyan-400 font-bold tracking-wider flex items-center gap-1.5">
+            <span>📊</span> SQLITE MEMORY (PAANI.DB)
+          </span>
+          <span class="text-[10px] text-emerald-400 font-semibold" id="history-count">6 Vendors</span>
+        </div>
+
+        <div id="sqlite-history-list" class="space-y-1.5 text-[10px] text-slate-300 flex-1 overflow-y-auto font-mono">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER STAGE: AI BROWSER VIEWPORT, WATCHER WIDGET & INTERACTIVE STREAM -->
+    <section id="center-stage" class="col-span-6 flex flex-col space-y-3 overflow-hidden">
+      
+      <!-- LIVE VIEWPORT CONTAINER WITH CLICKABLE HUD CANVAS -->
+      <div class="hud-card rounded-xl p-3 flex-1 flex flex-col space-y-2 overflow-hidden relative border-cyan-500/30">
+        
+        <div class="flex items-center justify-between text-[10px] text-cyan-400 font-bold border-b border-cyan-500/20 pb-1.5">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span>AI-NATIVE PLAYWRIGHT STREAM (CLICK CANVAS TO SOLVE CAPTCHA DIRECTLY)</span>
+          </span>
+          <span class="text-slate-400" id="viewport-url-display">https://agent.paani.local</span>
+        </div>
+
+        <!-- Interactive Canvas Frame -->
+        <div class="flex-1 relative bg-slate-950/90 rounded-lg border border-cyan-500/20 flex items-center justify-center overflow-hidden cursor-crosshair" id="viewport-container">
+          
+          <img 
+            id="browser-viewport-frame" 
+            onclick="handleCanvasClick(event)"
+            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'800\' height=\'500\' viewBox=\'0 0 800 500\'><rect width=\'800\' height=\'500\' fill=\'%2304060A\'/><text x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%2300E5FF\' font-family=\'monospace\' font-size=\'14\'>STEALTH BROWSER STREAM ACTIVE (CLICK TO INTERACT)</text></svg>'"
+            src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500' viewBox='0 0 800 500'><rect width='800' height='500' fill='%2304060A'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2300E5FF' font-family='monospace' font-size='14'>STEALTH BROWSER STREAM ACTIVE (CLICK TO INTERACT)</text></svg>" 
+            alt="Live Browser Stream"
+            class="w-full h-full object-contain rounded border border-cyan-500/30"
+            style="width: 100%; height: 100%; object-fit: contain;"
+          />
+
+          <!-- Holographic Scanline Overlay -->
+          <div class="absolute inset-0 pointer-events-none scanline opacity-40"></div>
+
+          <!-- Click Reticle Visual Indicator -->
+          <div id="click-reticle" class="absolute hidden w-6 h-6 border-2 border-yellow-400 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none animate-ping"></div>
+        </div>
+
+        <!-- Voice & Text Omni Directive Bar -->
+        <div class="relative pt-1">
+          <form id="omni-form" class="flex gap-2">
+            <button 
+              type="button" 
+              id="micBtn"
+              onclick="toggleVoiceRecognition()" 
+              title="Toggle Voice Listening (Ctrl + Space)"
+              class="px-3.5 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/40 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(0,229,255,0.1)]"
+            >
+              <span id="micIcon" class="text-sm">🎙️</span>
+              <span id="micText" class="hidden sm:inline">VOICE</span>
+            </button>
+
+            <input 
+              type="text" 
+              id="omni-input" 
+              value="Find microchip suppliers in Singapore" 
+              placeholder="Type or speak directive (Ctrl + Space)..."
+              class="flex-1 bg-slate-950/90 border border-cyan-500/40 rounded-lg px-3.5 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 text-xs font-mono"
+            />
+            <button type="submit" class="px-5 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-bold border border-cyan-400/60 rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(0,229,255,0.2)]">
+              <span>⚡ REASON & SCRAPE</span>
+            </button>
+          </form>
+
+          <!-- Audio Frequency Visualizer Wave Bar -->
+          <div id="audioWaveContainer" class="hidden absolute left-0 right-0 -bottom-1 h-1 bg-cyan-500/20 rounded-full overflow-hidden flex items-center justify-around px-2 pointer-events-none">
+            <div class="w-1 h-full bg-cyan-400 animate-pulse"></div>
+            <div class="w-1 h-full bg-cyan-300 animate-bounce"></div>
+            <div class="w-1 h-full bg-cyan-400 animate-pulse"></div>
+            <div class="w-1 h-full bg-cyan-200 animate-bounce"></div>
+            <div class="w-1 h-full bg-cyan-400 animate-pulse"></div>
+          </div>
+        </div>
+
+        <!-- Telemetry Status Bar with OS Clipboard Chip -->
+        <div class="flex justify-between items-center text-[9.5px] text-slate-400 px-1 pt-0.5">
+          <div class="flex items-center space-x-2">
+            <span id="voice-status-pill" class="text-emerald-400 font-semibold">VOICE: MONITORING (PRESS CTRL+SPACE)</span>
+            <button 
+              id="clipChip" 
+              onclick="injectClipboardText()" 
+              title="Click to paste OS Clipboard into directive input"
+              class="px-2 py-0.5 rounded border border-cyan-500/30 bg-slate-900 text-cyan-300 hover:border-cyan-400 font-mono text-[9px] flex items-center gap-1 transition-all"
+            >
+              <span>📋 CLIPBOARD:</span>
+              <span id="clipSnippetText" class="text-slate-300">Click to Paste</span>
+            </button>
+          </div>
+          <span>Click directly on CAPTCHA images inside canvas above to solve</span>
+        </div>
+      </div>
+
+      <!-- AUTONOMOUS SCHEDULED WATCHES WIDGET -->
+      <div class="hud-card rounded-xl p-2.5 flex flex-col space-y-1.5 border-cyan-500/20">
+        <div class="flex items-center justify-between text-[10px] text-cyan-400 font-bold border-b border-cyan-500/20 pb-1">
+          <span class="flex items-center gap-1.5">
+            <span>🕒</span> AUTONOMOUS SCHEDULED WATCHES
+          </span>
+          <button onclick="createNewWatchPrompt()" class="text-[9px] px-2 py-0.5 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/40 font-bold transition-all">+ ADD CRON MONITOR</button>
+        </div>
+        <div id="watcher-jobs-list" class="space-y-1 text-[9.5px] text-slate-300 max-h-16 overflow-y-auto">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT STAGE: MULTI-OPTION MATRIX & DEEP REASONING TREE -->
+    <section id="right-panel" class="col-span-3 flex flex-col space-y-3 overflow-hidden">
+      
+      <!-- Multi-Option Decision Vector Cards (Alpha, Beta, Gamma) -->
+      <div class="hud-card rounded-xl p-3.5 flex-1 flex flex-col space-y-2.5 overflow-hidden">
+        <div class="flex items-center justify-between border-b border-cyan-500/20 pb-1.5">
+          <span class="text-cyan-400 font-bold tracking-wider flex items-center gap-1.5">
+            <span>🎯</span> DECISION VECTOR MATRIX
+          </span>
+          <span class="text-[10px] text-emerald-400 font-bold">3 VECTORS</span>
+        </div>
+
+        <div class="flex-1 space-y-2 overflow-y-auto pr-0.5" id="vector-cards-container">
+          
+          <!-- Vector ALPHA -->
+          <div class="p-2.5 rounded-lg bg-slate-900/80 border border-cyan-500/30 hover:border-cyan-400 transition-all space-y-1.5">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-cyan-400 font-bold text-xs">Vector ALPHA</span>
+                  <span class="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 text-[8.5px] border border-emerald-400/40 rounded font-bold">GST: VALID</span>
+                  <span class="px-1.5 py-0.2 bg-cyan-500/20 text-cyan-300 text-[8.5px] border border-cyan-400/40 rounded font-bold">RISK: LOW</span>
+                </div>
+                <div class="text-[9.5px] text-slate-300">Apex Micro Electronics (Singapore)</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[9px] font-bold">98.4% TRUST</span>
+            </div>
+            <div class="grid grid-cols-2 gap-1 text-[9.5px] bg-slate-950/70 p-1.5 rounded border border-slate-800">
+              <div><span class="text-slate-400">Unit:</span> <span class="text-cyan-300 font-bold">$14.20</span></div>
+              <div><span class="text-slate-400">MOQ:</span> <span class="text-white">500</span></div>
+              <div><span class="text-slate-400">Lead:</span> <span class="text-emerald-400">3 Days</span></div>
+              <div><span class="text-slate-400">Speed:</span> <span class="text-yellow-400">Air Express</span></div>
+            </div>
+            <div class="flex justify-between items-center text-[8.5px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/30 font-semibold">
+              <span>RAG TARGET RATE: $12.50</span>
+              <span>FAVORABLE MARGIN</span>
+            </div>
+            <div class="flex gap-1 pt-0.5">
+              <button onclick="selectVector('ALPHA')" class="flex-1 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 rounded text-[9px] font-bold">Deep Dive</button>
+              <button onclick="triggerDraftPO('ALPHA', 'Apex Micro Electronics (Singapore)', '$14.20', '500 Units', '3 Days')" class="flex-1 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 rounded text-[9px] font-bold">Draft PO</button>
+              <button onclick="triggerRFQOutreach('ALPHA', 'Apex Micro Electronics (Singapore)', 'sales@apexmicro.sg', '$14.20', '500 Units')" class="flex-1 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded text-[9px] font-bold">✉️ DISPATCH RFQ</button>
+            </div>
+          </div>
+
+          <!-- Vector BETA -->
+          <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-700/60 hover:border-cyan-500/40 transition-all space-y-1.5">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-purple-300 font-bold text-xs">Vector BETA</span>
+                  <span class="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 text-[8.5px] border border-emerald-400/40 rounded font-bold">UEN: VALID</span>
+                  <span class="px-1.5 py-0.2 bg-cyan-500/20 text-cyan-300 text-[8.5px] border border-cyan-400/40 rounded font-bold">RISK: LOW</span>
+                </div>
+                <div class="text-[9.5px] text-slate-300">Quantum Components (Taiwan)</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-[9px] font-bold">92.1% TRUST</span>
+            </div>
+            <div class="grid grid-cols-2 gap-1 text-[9.5px] bg-slate-950/70 p-1.5 rounded border border-slate-800">
+              <div><span class="text-slate-400">Unit:</span> <span class="text-cyan-300 font-bold">$11.85</span></div>
+              <div><span class="text-slate-400">MOQ:</span> <span class="text-white">1,000</span></div>
+              <div><span class="text-slate-400">Lead:</span> <span class="text-cyan-400">7 Days</span></div>
+              <div><span class="text-slate-400">Speed:</span> <span class="text-slate-300">Air Cargo</span></div>
+            </div>
+            <div class="flex justify-between items-center text-[8.5px] text-cyan-300 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/30 font-semibold">
+              <span>RAG TARGET RATE: $10.00</span>
+              <span>MATCHES CATALOG</span>
+            </div>
+            <div class="flex gap-1 pt-0.5">
+              <button onclick="selectVector('BETA')" class="flex-1 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 rounded text-[9px] font-bold">Deep Dive</button>
+              <button onclick="triggerDraftPO('BETA', 'Quantum Components Corp (Taiwan)', '$11.85', '1000 Units', '7 Days')" class="flex-1 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 rounded text-[9px] font-bold">Draft PO</button>
+              <button onclick="triggerRFQOutreach('BETA', 'Quantum Components Corp (Taiwan)', 'procurement@quantumcomp.tw', '$11.85', '1000 Units')" class="flex-1 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded text-[9px] font-bold">✉️ DISPATCH RFQ</button>
+            </div>
+          </div>
+
+          <!-- Vector GAMMA -->
+          <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-700/60 hover:border-cyan-500/40 transition-all space-y-1.5">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-amber-400 font-bold text-xs">Vector GAMMA</span>
+                  <span class="px-1.5 py-0.2 bg-slate-700/40 text-slate-300 text-[8.5px] border border-slate-600 rounded font-bold">GST: UNVERIFIED</span>
+                  <span class="px-1.5 py-0.2 bg-amber-500/20 text-amber-300 text-[8.5px] border border-amber-400/40 rounded font-bold">RISK: MED</span>
+                </div>
+                <div class="text-[9.5px] text-slate-300">Global Direct Logistics (Germany)</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded bg-slate-700/40 border border-slate-600 text-slate-300 text-[9px] font-bold">86.7% TRUST</span>
+            </div>
+            <div class="grid grid-cols-2 gap-1 text-[9.5px] bg-slate-950/70 p-1.5 rounded border border-slate-800">
+              <div><span class="text-slate-400">Unit:</span> <span class="text-emerald-400 font-bold">$9.50</span></div>
+              <div><span class="text-slate-400">MOQ:</span> <span class="text-white">2,500</span></div>
+              <div><span class="text-slate-400">Lead:</span> <span class="text-amber-400">14 Days</span></div>
+              <div><span class="text-slate-400">Speed:</span> <span class="text-slate-400">Ocean Cargo</span></div>
+            </div>
+            <div class="flex justify-between items-center text-[8.5px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/30 font-semibold">
+              <span>RAG TARGET RATE: $8.20</span>
+              <span>VOLUME DISCOUNT</span>
+            </div>
+            <div class="flex gap-1 pt-0.5">
+              <button onclick="selectVector('GAMMA')" class="flex-1 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 rounded text-[9px] font-bold">Deep Dive</button>
+              <button onclick="triggerDraftPO('GAMMA', 'Global Direct Logistics Ltd (Germany)', '$9.50', '2500 Units', '14 Days')" class="flex-1 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 rounded text-[9px] font-bold">Draft PO</button>
+              <button onclick="triggerRFQOutreach('GAMMA', 'Global Direct Logistics Ltd (Germany)', 'quotes@globaldirectlogistics.de', '$9.50', '2500 Units')" class="flex-1 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded text-[9px] font-bold">✉️ DISPATCH RFQ</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Deep Reasoning Tree & Multimodal Proof Viewer -->
+      <div class="hud-card rounded-xl p-3.5 flex flex-col space-y-2">
+        <div class="flex items-center justify-between border-b border-cyan-500/20 pb-1">
+          <span class="text-cyan-400 font-bold text-[10.5px] tracking-wider">🧠 REASONING TREE</span>
+          <span class="text-emerald-400 font-bold text-[9px]">VERIFIED</span>
+        </div>
+
+        <div class="space-y-1 text-[9.5px] text-slate-300">
+          <div class="flex items-center gap-1.5"><span class="text-emerald-400">✓</span> <span>Supplier GST/Tax ID: VERIFIED</span></div>
+          <div class="flex items-center gap-1.5"><span class="text-emerald-400">✓</span> <span>Credit Report (D&B): AAA+ VERIFIED</span></div>
+          <div class="flex items-center gap-1.5"><span class="text-cyan-400">✓</span> <span>Vision Model Inspection: PASSED</span></div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- HOLOGRAPHIC CLOUD KEYS SETTINGS MODAL -->
+  <div id="settings-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+    <div class="hud-card max-w-md w-full rounded-2xl p-6 flex flex-col space-y-4 text-xs font-mono border-purple-500/40 shadow-[0_0_25px_rgba(168,85,247,0.25)]">
+      
+      <div class="flex items-center justify-between border-b border-purple-500/40 pb-3">
+        <div class="flex items-center space-x-2 text-purple-300 font-bold text-sm">
+          <span>⚙️</span>
+          <span>HYBRID CLOUD MODEL CONFIGURATION</span>
+        </div>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white font-bold text-sm">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-slate-200">
+        <div>
+          <label class="block text-[10.5px] text-purple-300 font-semibold mb-1">Active Cloud Provider</label>
+          <select id="select-provider" class="w-full bg-slate-950 border border-purple-500/40 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-purple-400">
+            <option value="LOCAL">Local Ollama (Qwen2.5 / Gemma3)</option>
+            <option value="GEMINI">Google Gemini API (Gemini-1.5-Flash)</option>
+            <option value="OPENAI">OpenAI API (GPT-4o-mini)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10.5px] text-cyan-300 font-semibold mb-1">Routing Mode</label>
+          <select id="select-routing-mode" class="w-full bg-slate-950 border border-cyan-500/40 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-cyan-400">
+            <option value="AUTO">AUTO — Smart Dynamic Tiering</option>
+            <option value="ALWAYS_LOCAL">ALWAYS LOCAL — Force Local Hardware</option>
+            <option value="ALWAYS_CLOUD">ALWAYS CLOUD — Force Cloud Synthesis</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10.5px] text-slate-300 mb-1">Google Gemini API Key</label>
+          <input type="password" id="input-gemini-key" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-purple-400" />
+        </div>
+
+        <div>
+          <label class="block text-[10.5px] text-slate-300 mb-1">OpenAI API Key</label>
+          <input type="password" id="input-openai-key" placeholder="sk-proj-..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-purple-400" />
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button onclick="saveCloudSettings()" class="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg text-xs transition-all shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+          [SAVE CONFIGURATION]
+        </button>
+        <button onclick="closeSettingsModal()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg text-xs">
+          [CANCEL]
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FLOATING AMBER PERMISSION INTERCEPT GATE MODAL -->
+  <div id="permission-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+    <div class="hud-card-amber max-w-lg w-full rounded-2xl p-6 flex flex-col space-y-3.5 text-xs font-mono shadow-[0_0_30px_rgba(255,179,0,0.3)]">
+      
+      <div class="flex items-center justify-between border-b border-amber-500/40 pb-2.5">
+        <div class="flex items-center space-x-2 text-amber-400 font-bold text-sm">
+          <span>⚠️</span>
+          <span>AIR-GAP PERMISSION INTERCEPT GATE</span>
+        </div>
+        <span id="modal-gate-type" class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">OUTREACH CLEARANCE REQUIRED</span>
+      </div>
+
+      <div class="space-y-2 text-slate-200 leading-relaxed">
+        <p class="text-[11px] text-amber-200">External transmission halted. Human operator sign-off required before SMTP email socket connection:</p>
+        
+        <div id="modal-details-card" class="p-3 bg-slate-950/90 rounded-lg border border-amber-500/40 space-y-2 text-[11px]">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-1">
+            <span><strong class="text-amber-400">Action Type:</strong> <span id="modal-action-type">RFQ External Email Outreach</span></span>
+            <span class="text-cyan-400 font-bold" id="modal-action-id">ACT-RFQ-8F21</span>
+          </div>
+
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-0.5">Recipient Supplier Email:</label>
+            <input type="email" id="modal-recipient-email" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-cyan-300 font-mono text-[11px] focus:outline-none focus:border-amber-400" />
+          </div>
+
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-0.5">Subject Line:</label>
+            <input type="text" id="modal-subject-line" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-white font-mono text-[11px] focus:outline-none focus:border-amber-400" />
+          </div>
+
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-0.5">Body Preview:</label>
+            <textarea id="modal-body-text" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-slate-300 font-mono text-[10px] focus:outline-none focus:border-amber-400"></textarea>
+          </div>
+
+          <div class="flex justify-between items-center text-[10px] bg-slate-900/80 p-1.5 rounded border border-emerald-500/30">
+            <span class="text-emerald-400 font-bold" id="modal-attached-file">Attachment: Purchase_Order_PO-2026-ALPHA.pdf</span>
+            <span class="text-slate-400">[DRAFT MODE ENABLED]</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2.5 pt-1.5">
+        <button id="modal-approve-btn" onclick="respondPermissionGate(true)" class="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-lg text-xs transition-all shadow-[0_0_15px_rgba(0,230,118,0.4)]">
+          [APPROVE & DISPATCH RFQ]
+        </button>
+        <button onclick="respondPermissionGate(false)" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs transition-all shadow-[0_0_15px_rgba(255,23,68,0.4)]">
+          [DENY ACTION]
+        </button>
+        <button onclick="closePermissionModal()" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg text-xs">
+          [CANCEL]
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HUD NOTIFICATION TOAST CONTAINER -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <!-- JAVASCRIPT HOLOGRAPHIC HUD & INTERACTIVE CANVAS LOGIC -->
+  <script>
+    let activeState = 'STANDBY';
+    let isHeadedMode = false;
+    let isCompactMode = false;
+    let currentVector = 'ALPHA';
+
+    // Arc Reactor Geometric Canvas Animation
+    const canvas = document.getElementById('arc-reactor-canvas');
+    const ctx = canvas.getContext('2d');
+    let rotationAngle = 0;
+
+    function drawArcReactor() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      let color = '#00e5ff'; // Standby Cyan
+      if (activeState === 'THINKING') color = '#3b82f6'; // Electric Blue
+      if (activeState.includes('TOOL')) color = '#00e676'; // Emerald Green
+      if (activeState === 'CLEARANCE') color = '#ffb300'; // Amber Alert
+      if (activeState === 'LISTENING') color = '#00f0ff'; // Glowing Cyan Ripple
+      if (activeState === 'SPEAKING') color = '#38bdf8'; // Soft Neon Cyan Pulse
+
+      // Outer Ring
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 48, 0, Math.PI * 2);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = (activeState === 'LISTENING' || activeState === 'SPEAKING') ? 24 : 12;
+      ctx.shadowColor = color;
+      ctx.stroke();
+
+      // Additional Ripple Wave Rings for LISTENING / SPEAKING
+      if (activeState === 'LISTENING' || activeState === 'SPEAKING') {
+        const rippleR = 48 + (Math.sin(Date.now() / 150) * 8);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, Math.max(10, rippleR), 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // Rotating Segment Ring
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(rotationAngle);
+      for (let i = 0; i < 8; i++) {
+        ctx.beginPath();
+        ctx.arc(0, 0, 36, (i * Math.PI / 4), (i * Math.PI / 4) + 0.45);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Pulsing Core
+      ctx.beginPath();
+      const coreR = activeState === 'SPEAKING' ? 18 + (Math.sin(Date.now() / 100) * 3) : 18;
+      ctx.arc(centerX, centerY, coreR, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      rotationAngle += (activeState === 'THINKING' ? 0.08 : (activeState === 'LISTENING' ? 0.05 : 0.02));
+      requestAnimationFrame(drawArcReactor);
+    }
+    drawArcReactor();
+
+    // Scheduled Watchers Logic
+    async function loadWatcherJobs() {
+      try {
+        const res = await fetch('/api/watcher/jobs');
+        const data = await res.json();
+        if (data && data.jobs) {
+          const list = document.getElementById('watcher-jobs-list');
+          list.innerHTML = '';
+          data.jobs.forEach(j => {
+            const div = document.createElement('div');
+            div.className = 'p-1 rounded bg-slate-900/80 border border-slate-700/40 flex justify-between items-center';
+            div.innerHTML = `
+              <span class="text-cyan-300 font-bold">[#${j.id}] ${j.name}</span>
+              <span class="text-slate-400">${j.intervalMinutes}m • ${j.status}</span>
+              <button onclick="toggleWatchJob(${j.id})" class="px-1.5 py-0.5 rounded text-[8.5px] font-bold ${j.status === 'ACTIVE' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-700 text-slate-300'}">${j.status === 'ACTIVE' ? 'ACTIVE' : 'PAUSED'}</button>
+            `;
+            list.appendChild(div);
+          });
+        }
+      } catch (e) {}
+    }
+    loadWatcherJobs();
+    setInterval(loadWatcherJobs, 10000);
+
+    async function toggleWatchJob(id) {
+      try {
+        await fetch('/api/watcher/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ watchId: id })
+        });
+        loadWatcherJobs();
+      } catch (e) {}
+    }
+
+    async function createNewWatchPrompt() {
+      const name = prompt("Enter scheduled watch title:", "Microchip Price Watch");
+      if (!name) return;
+      const targetValue = prompt("Target price threshold ($):", "15.00");
+      if (!targetValue) return;
+
+      try {
+        await fetch('/api/watcher/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            targetUrl: 'https://www.google.com/search?q=microchip+suppliers+singapore',
+            targetValue,
+            intervalMinutes: 5
+          })
+        });
+        loadWatcherJobs();
+        showToast(`Scheduled Watch Created: ${name}`);
+      } catch (e) {}
+    }
+
+    // Settings Modal & Cloud Config Logic
+    async function loadCloudSettings() {
+      try {
+        const res = await fetch('/api/config/keys');
+        const data = await res.json();
+        if (data) {
+          document.getElementById('select-provider').value = data.activeProvider || 'LOCAL';
+          document.getElementById('select-routing-mode').value = data.routingMode || 'AUTO';
+          updateRouterBadge(data.activeProvider, data.routingMode);
+        }
+      } catch (e) {}
+    }
+    loadCloudSettings();
+
+    function updateRouterBadge(provider, mode) {
+      const btnText = document.getElementById('routerText');
+      if (mode === 'ALWAYS_LOCAL' || provider === 'LOCAL') {
+        btnText.innerText = 'ROUTE: LOCAL (QWEN)';
+      } else if (provider === 'GEMINI') {
+        btnText.innerText = 'ROUTE: HYBRID (GEMINI CLOUD)';
+      } else if (provider === 'OPENAI') {
+        btnText.innerText = 'ROUTE: HYBRID (OPENAI CLOUD)';
+      } else {
+        btnText.innerText = 'ROUTE: HYBRID (AUTO)';
+      }
+    }
+
+    function openSettingsModal() {
+      document.getElementById('settings-modal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settings-modal').classList.add('hidden');
+    }
+
+    async function saveCloudSettings() {
+      const activeProvider = document.getElementById('select-provider').value;
+      const routingMode = document.getElementById('select-routing-mode').value;
+      const geminiApiKey = document.getElementById('input-gemini-key').value.trim();
+      const openaiApiKey = document.getElementById('input-openai-key').value.trim();
+
+      const payload = { activeProvider, routingMode };
+      if (geminiApiKey) payload.geminiApiKey = geminiApiKey;
+      if (openaiApiKey) payload.openaiApiKey = openaiApiKey;
+
+      try {
+        const res = await fetch('/api/config/keys', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast("Cloud Routing Configuration Saved.");
+          updateRouterBadge(activeProvider, routingMode);
+          closeSettingsModal();
+        }
+      } catch (e) {}
+    }
+
+    function toggleRouterProvider() {
+      openSettingsModal();
+    }
+
+    // Toggle Compact Overlay Mode
+    function toggleCompactOverlayMode() {
+      isCompactMode = !isCompactMode;
+      const left = document.getElementById('left-panel');
+      const right = document.getElementById('right-panel');
+      const center = document.getElementById('center-stage');
+      const btn = document.getElementById('btn-compact-mode');
+
+      if (isCompactMode) {
+        left.classList.add('hidden');
+        right.classList.add('hidden');
+        center.className = 'col-span-12 flex flex-col space-y-3 overflow-hidden';
+        btn.innerText = '🔍 FULL HUD';
+        btn.className = 'px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/60 rounded font-bold text-xs';
+      } else {
+        left.classList.remove('hidden');
+        right.classList.remove('hidden');
+        center.className = 'col-span-6 flex flex-col space-y-3 overflow-hidden';
+        btn.innerText = '🔍 COMPACT';
+        btn.className = 'px-2.5 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/60 rounded font-bold text-xs';
+      }
+    }
+
+    // OS Clipboard Injector
+    async function injectClipboardText() {
+      try {
+        const res = await fetch('/api/system/clipboard');
+        const data = await res.json();
+        if (data.success && data.clipboard) {
+          const text = data.clipboard;
+          document.getElementById('omni-input').value = text;
+          document.getElementById('clipSnippetText').innerText = text.length > 15 ? text.substring(0, 15) + '...' : text;
+          showToast(`Clipboard Injected: "${text.substring(0, 20)}..."`);
+        }
+      } catch (e) {}
+    }
+
+    // Notification Toast System
+    function showToast(msg, filePath, pdfB64) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto hud-card rounded-xl p-3.5 border-emerald-500/50 shadow-[0_0_20px_rgba(0,230,118,0.25)] flex flex-col space-y-2 max-w-sm text-xs font-mono transition-all animate-bounce';
+      
+      let downloadBtnHtml = '';
+      if (pdfB64) {
+        downloadBtnHtml = `<a href="data:application/pdf;base64,${pdfB64}" download="${filePath ? filePath.split('/').pop().split('\\').pop() : 'PO.pdf'}" class="mt-1 px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded text-[10px] text-center transition-all inline-block">[OPEN / DOWNLOAD PDF]</a>`;
+      } else if (filePath) {
+        downloadBtnHtml = `<div class="text-[9.5px] text-emerald-300 font-bold">Saved: ${filePath}</div>`;
+      }
+
+      toast.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="text-emerald-400 font-bold flex items-center gap-1.5">
+            <span>📄</span> SYSTEM NOTIFICATION
+          </span>
+          <button onclick="this.parentElement.parentElement.remove()" class="text-slate-400 hover:text-white font-bold text-xs">&times;</button>
+        </div>
+        <div class="text-slate-200 text-[10.5px]">${msg}</div>
+        ${downloadBtnHtml}
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+      }, 10000);
+    }
+
+    // Automated PO Drafting Trigger
+    async function triggerDraftPO(vecId, vendorName, unitPrice, moq, leadTime) {
+      currentVector = vecId;
+      triggerPermissionGate(vecId);
+    }
+
+    // Voice Active / Mute Toggle Logic
+    let voiceActive = localStorage.getItem('paani_voice_active') !== 'false';
+    function updateVoiceToggleUI() {
+      const icon = document.getElementById('voiceToggleIcon');
+      const text = document.getElementById('voiceToggleText');
+      const btn = document.getElementById('voiceToggleBtn');
+      if (voiceActive) {
+        icon.innerText = '🔊';
+        text.innerText = 'VOICE: ACTIVE';
+        btn.className = 'px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/60 rounded font-bold transition-all text-xs flex items-center gap-1.5 shadow-[0_0_10px_rgba(0,229,255,0.15)]';
+      } else {
+        icon.innerText = '🔇';
+        text.innerText = 'VOICE: MUTED';
+        btn.className = 'px-3 py-1 bg-slate-800/80 hover:bg-slate-700 text-slate-400 border border-slate-700 rounded font-bold transition-all text-xs flex items-center gap-1.5';
+      }
+    }
+    updateVoiceToggleUI();
+
+    function toggleVoiceActive() {
+      voiceActive = !voiceActive;
+      localStorage.setItem('paani_voice_active', voiceActive);
+      updateVoiceToggleUI();
+      if (!voiceActive && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    // Speech-to-Text (STT) Recognition Logic
+    let isListening = false;
+    let recognition = null;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        isListening = true;
+        activeState = 'LISTENING';
+        document.getElementById('micBtn').classList.add('bg-cyan-400/40', 'text-cyan-200', 'border-cyan-300', 'animate-pulse');
+        document.getElementById('audioWaveContainer').classList.remove('hidden');
+        document.getElementById('voice-status-pill').innerText = 'VOICE: LISTENING... SPEAK DIRECTIVE NOW';
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        document.getElementById('omni-input').value = transcript;
+      };
+
+      recognition.onerror = (err) => {
+        stopListening();
+      };
+
+      recognition.onend = () => {
+        stopListening();
+        const directive = document.getElementById('omni-input').value.trim();
+        if (directive && directive !== 'Find microchip suppliers in Singapore') {
+          submitDirective();
+        }
+      };
+    }
+
+    function toggleVoiceRecognition() {
+      if (isListening) {
+        stopListening();
+      } else {
+        startListening();
+      }
+    }
+
+    function startListening() {
+      if (recognition) {
+        try { recognition.start(); } catch(e) {}
+      } else {
+        alert("Web Speech API recognition is not supported in this browser. Please use Chrome/Edge.");
+      }
+    }
+
+    function stopListening() {
+      isListening = false;
+      if (activeState === 'LISTENING') activeState = 'STANDBY';
+      document.getElementById('micBtn').classList.remove('bg-cyan-400/40', 'text-cyan-200', 'border-cyan-300', 'animate-pulse');
+      document.getElementById('audioWaveContainer').classList.add('hidden');
+      document.getElementById('voice-status-pill').innerText = 'VOICE: MONITORING (PRESS CTRL+SPACE) | SECURE CHANNEL: ACTIVE';
+      if (recognition) {
+        try { recognition.stop(); } catch(e) {}
+      }
+    }
+
+    // Global Hotkeys (Ctrl + Space for Voice, Ctrl + Shift + J for Command Bar Focus)
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.code === 'Space') {
+        e.preventDefault();
+        toggleVoiceRecognition();
+      }
+      if (e.ctrlKey && e.shiftKey && e.code === 'KeyJ') {
+        e.preventDefault();
+        document.getElementById('omni-input').focus();
+      }
+    });
+
+    // Vocal Briefing Speech Synthesis (TTS)
+    let lastSpokenSummary = "";
+
+    function playVocalAudio(text) {
+      playVocalBriefing(text);
+    }
+
+    function handleVocalBriefing(data) {
+      if (data && data.vocalSummary && data.vocalSummary !== lastSpokenSummary) {
+        lastSpokenSummary = data.vocalSummary;
+        playVocalAudio(data.vocalSummary);
+      }
+    }
+
+    async function playVocalBriefing(text) {
+      if (!voiceActive || !text) return;
+      activeState = 'SPEAKING';
+      document.getElementById('voice-status-pill').innerText = 'VOICE: SPEAKING VOCAL BRIEFING...';
+
+      try {
+        const res = await fetch('/api/voice/speak', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+
+        if (data.success && data.audioB64) {
+          const audio = new Audio("data:" + (data.mimeType || "audio/mpeg") + ";base64," + data.audioB64);
+          audio.onended = () => {
+            if (activeState === 'SPEAKING') activeState = 'STANDBY';
+            document.getElementById('voice-status-pill').innerText = 'VOICE: MONITORING (PRESS CTRL+SPACE) | SECURE CHANNEL: ACTIVE';
+          };
+          audio.onerror = () => { speakWebSpeech(text); };
+          await audio.play();
+          return;
+        }
+      } catch (err) {}
+
+      speakWebSpeech(text);
+    }
+
+    function speakWebSpeech(text) {
+      if ('speechSynthesis' in window && voiceActive) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.onend = () => {
+          if (activeState === 'SPEAKING') activeState = 'STANDBY';
+          document.getElementById('voice-status-pill').innerText = 'VOICE: MONITORING (PRESS CTRL+SPACE) | SECURE CHANNEL: ACTIVE';
+        };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        if (activeState === 'SPEAKING') activeState = 'STANDBY';
+      }
+    }
+
+    // Canvas Image Click Handler (Translates HUD click to Playwright 1280x800 resolution)
+    async function handleCanvasClick(e) {
+      const img = e.target;
+      const rect = img.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      // Scale to Playwright 1280x800 viewport
+      const normX = Math.round((clickX / rect.width) * 1280);
+      const normY = Math.round((clickY / rect.height) * 800);
+
+      // Show temporary reticle
+      const reticle = document.getElementById('click-reticle');
+      reticle.style.left = `${clickX}px`;
+      reticle.style.top = `${clickY}px`;
+      reticle.classList.remove('hidden');
+      setTimeout(() => reticle.classList.add('hidden'), 1000);
+
+      try {
+        await fetch('/api/browser/click', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ x: normX, y: normY })
+        });
+      } catch (err) {}
+    }
+
+    // Refresh Viewport Frame Stream
+    async function refreshViewport() {
+      try {
+        const res = await fetch('/api/browser/viewport');
+        const data = await res.json();
+        let framePayload = data.frame || data.viewportFrameB64;
+        if (framePayload && typeof framePayload === 'string') {
+          if (!framePayload.startsWith('data:image/')) {
+            framePayload = 'data:image/jpeg;base64,' + framePayload;
+          }
+          const img = document.getElementById('browser-viewport-frame') || document.querySelector('.browser-stream img') || document.querySelector('#viewport-container img');
+          if (img) {
+            img.src = framePayload;
+          }
+          if (data.url && document.getElementById('viewport-url-display')) {
+            document.getElementById('viewport-url-display').innerText = data.url;
+          }
+        }
+      } catch (e) {}
+    }
+    refreshViewport();
+    setInterval(refreshViewport, 1000);
+
+    // Stream status polling
+    let lastReticleTimestamp = null;
+    async function pollCognitiveStatus() {
+      try {
+        const res = await fetch('/api/agent/stream-status');
+        const data = await res.json();
+        if (data) {
+          if (activeState !== 'LISTENING' && activeState !== 'SPEAKING') {
+            activeState = data.state || 'STANDBY';
+          }
+          document.getElementById('cognitive-state-text').innerText = `STATE: ${activeState}`;
+          document.getElementById('arc-state-text').innerText = activeState;
+
+          // Check if parsed vectors are present in stream-status response
+          if (data.vectors && data.vectors.length > 0) {
+            loadHistory();
+          }
+
+          // Check if VLM Self-Healing Visual Locator was engaged
+          if (data.lastActionTarget && data.lastActionTarget.visionHealed) {
+            const target = data.lastActionTarget;
+            if (target.timestamp !== lastReticleTimestamp) {
+              lastReticleTimestamp = target.timestamp;
+              showToast(`VLM Vision Grounding Healed Click: (${target.x}, ${target.y}) for selector '${target.selector}'`, null);
+              
+              const img = document.getElementById('browser-viewport-frame');
+              if (img) {
+                const rect = img.getBoundingClientRect();
+                const displayX = Math.round((target.x / 1280) * rect.width);
+                const displayY = Math.round((target.y / 800) * rect.height);
+                const reticle = document.getElementById('click-reticle');
+                if (reticle) {
+                  reticle.style.left = `${displayX}px`;
+                  reticle.style.top = `${displayY}px`;
+                  reticle.classList.remove('hidden');
+                  setTimeout(() => reticle.classList.add('hidden'), 2000);
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {}
+    }
+    setInterval(pollCognitiveStatus, 2000);
+
+    // Refresh SQLite History
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/vendors/history');
+        const data = await res.json();
+        if (data && data.history) {
+          const list = document.getElementById('sqlite-history-list');
+          list.innerHTML = '';
+          document.getElementById('history-count').innerText = `${data.history.length} Vendors`;
+          data.history.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'p-1.5 rounded bg-slate-900/60 border border-slate-700/40 flex justify-between';
+            div.innerHTML = `<span class="text-cyan-400 font-bold">[${item.vectorTier}] ${item.name}</span><span class="text-emerald-400 font-semibold">${item.unitPrice}</span>`;
+            list.appendChild(div);
+          });
+        }
+      } catch (e) {}
+    }
+    loadHistory();
+
+    // Omni-bar submit execution
+    async function submitDirective() {
+      const input = document.getElementById('omni-input');
+      const directive = input.value.trim();
+      if (!directive) return;
+
+      activeState = 'THINKING';
+      try {
+        const res = await fetch('/api/agent/prompt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ directive })
+        });
+        const data = await res.json();
+        if (data.status === 'COMPLETED') {
+          loadHistory();
+          handleVocalBriefing(data);
+          if (!data.vocalSummary) {
+            activeState = 'STANDBY';
+          }
+        }
+      } catch (err) {
+        activeState = 'STANDBY';
+      }
+    }
+
+    document.getElementById('omni-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      submitDirective();
+    });
+
+    // Toggle Headed / Headless Handover
+    async function toggleBrowserHandover() {
+      isHeadedMode = !isHeadedMode;
+      const btn = document.getElementById('btn-toggle-handover');
+      if (isHeadedMode) {
+        btn.innerHTML = `<span>🔄 RESUME AUTONOMY</span>`;
+        btn.className = `px-3.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/60 rounded font-bold text-xs`;
+      } else {
+        btn.innerHTML = `<span>✋ TAKE CONTROL / HEADED</span>`;
+        btn.className = `px-3.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/60 rounded font-bold text-xs`;
+      }
+      try {
+        await fetch('/api/browser/toggle-mode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ headed: isHeadedMode })
+        });
+      } catch (e) {}
+    }
+
+    // Permission Intercept Gate Modal
+    let activeActionId = null;
+
+    async function triggerRFQOutreach(vecId, vendorName, recipientEmail, targetPrice, quantity) {
+      currentVector = vecId;
+      activeState = 'CLEARANCE';
+
+      try {
+        const res = await fetch('/api/agent/outreach', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            vendorName: vendorName,
+            recipientEmail: recipientEmail,
+            targetPrice: targetPrice,
+            quantity: quantity,
+            draftOnly: true
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          activeActionId = data.actionId;
+          document.getElementById('modal-action-id').innerText = data.actionId;
+          document.getElementById('modal-recipient-email').value = data.recipientEmail;
+          document.getElementById('modal-subject-line').value = data.subject;
+          document.getElementById('modal-body-text').value = data.bodyText;
+          document.getElementById('modal-attached-file').innerText = `Attachment: ${data.poRef}.pdf`;
+          document.getElementById('permission-modal').classList.remove('hidden');
+        }
+      } catch (e) {
+        showToast("Outreach initiation failed", null);
+      }
+    }
+
+    function triggerPermissionGate(vecId) {
+      currentVector = vecId;
+      activeActionId = `ACT-PO-${vecId}`;
+      document.getElementById('modal-action-id').innerText = activeActionId;
+      document.getElementById('modal-recipient-email').value = "sales@apexmicro.sg";
+      document.getElementById('modal-subject-line').value = `[PO DRAFT] Order Authorization - Vector ${vecId}`;
+      document.getElementById('modal-body-text').value = `Formal Purchase Order authorization for Vector ${vecId}.`;
+      document.getElementById('modal-attached-file').innerText = `Attachment: Purchase_Order_${vecId}.pdf`;
+      document.getElementById('permission-modal').classList.remove('hidden');
+      activeState = 'CLEARANCE';
+    }
+
+    function closePermissionModal() {
+      document.getElementById('permission-modal').classList.add('hidden');
+      activeState = 'STANDBY';
+    }
+
+    async function respondPermissionGate(approved) {
+      closePermissionModal();
+      const recipient = document.getElementById('modal-recipient-email').value.trim();
+      const subject = document.getElementById('modal-subject-line').value.trim();
+      const bodyText = document.getElementById('modal-body-text').value.trim();
+
+      if (approved) {
+        try {
+          const res = await fetch('/api/agent/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              actionId: activeActionId,
+              vectorId: currentVector,
+              recipientEmail: recipient,
+              subject: subject,
+              bodyText: bodyText
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            if (data.outreach) {
+              const msg = data.outreach.status === 'DRAFT_SAVED' 
+                ? `RFQ Email Draft Saved: ${data.outreach.filename} to ${data.outreach.recipient}`
+                : `RFQ Email Dispatched to ${data.outreach.recipient}`;
+              showToast(msg, data.outreach.eml_path);
+            } else {
+              showToast(`Air-Gap Cleared: PO Approved for Vector ${currentVector}`, null);
+            }
+            if (voiceActive) {
+              playVocalBriefing(`Air gap cleared. External outreach authorized for Vector ${currentVector}.`);
+            }
+          }
+        } catch (e) {}
+      } else {
+        try {
+          await fetch('/api/agent/deny', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ actionId: activeActionId })
+          });
+          showToast("Air-Gap Gate Enforced: Action Terminated by Operator.", null);
+        } catch (e) {}
+      }
+    }
+
+    function selectVector(vecId) {
+      currentVector = vecId;
+    }
+  </script>
+</body>
+</html>

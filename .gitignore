@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime / Data Storage
+*.db
+*.db-journal
+*.db-wal
+paani_chats.json
+paani_config.json
+paani_memory.json
+paani_tasks.json
+paani_db_fallback.json
+data/
+.data/
+
+# Binary / Compressed Archives
+*.zip
+*.tar.gz
+*.7z
+electron-v*.zip
+
+# Test & Debug Artifacts
+debug_log.txt
+*.log
+screenshots/
+coverage/
+.nyc_output/
+tests/fixtures/*/paani.db
+tests/**/test10_db_*
+
+# OS & IDE Junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.user
+paani_env/
+paani_profile/
+__pycache__/
+*.pyc
+paani.db
+exports/
+*.log
